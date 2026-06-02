@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'mscontrolador'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['mscontrolador:8080']
+
+  - job_name: 'msweathermonitor'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['msweathermonitor:8083']
+
+  - job_name: 'msproofskywwatch'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['msproofskywwatch:8081']

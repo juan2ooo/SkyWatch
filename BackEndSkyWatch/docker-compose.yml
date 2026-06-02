@@ -1,0 +1,86 @@
+version: '3.9'
+
+services:
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
+
+
+
+
+  db-timescale:
+    image: timescale/timescaledb:latest-pg15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mydb
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./msControlador/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  mscontrolador:
+    build: ./msControlador
+    depends_on:
+      - db-timescale
+      - msweathermonitor
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-timescale:5432/mydb
+      RABBIT: rabbitmq
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
+
+  msweathermonitor:
+    build: ./msWeatherMonitor
+    container_name: api-clima
+    ports:
+      - "8083:8083"
+
+  mongo:
+    image: mongo:6
+    container_name: mongo-db
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: deliveriesdb
+    volumes:
+      - mongo_data:/data/db
+
+  msproofskywwatch:
+    build: ./msProofSkyWatch
+    container_name: delivery-ms
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongo
+      - rabbitmq
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/deliveriesdb
+      SPRING_RABBITMQ_HOST: rabbitmq
+    restart: always
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+volumes:
+  db_data:
+  mongo_data:
