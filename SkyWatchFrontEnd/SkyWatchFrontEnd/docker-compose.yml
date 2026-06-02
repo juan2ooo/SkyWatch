@@ -1,0 +1,21 @@
+services:
+  frontend:
+    build: .
+    container_name: skywatch-frontend
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:postgresql://db-timescale:5432/mydb}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD:-postgres}
+      - SPRING_RABBITMQ_HOST=${SPRING_RABBITMQ_HOST:-rabbitmq}
+      - SPRING_RABBITMQ_PORT=${SPRING_RABBITMQ_PORT:-5672}
+      - SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME:-guest}
+      - SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD:-guest}
+    networks:
+      - skywatch-network
+
+networks:
+  skywatch-network:
+    external: true
+    name: skywatch_default
